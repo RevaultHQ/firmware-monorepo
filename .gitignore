@@ -4,3 +4,5 @@ modules/buildroot/output/
 *.o
 *.swp
 *~
+
+logs/

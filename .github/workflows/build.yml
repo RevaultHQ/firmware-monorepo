@@ -13,28 +13,9 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Free disk space
-        run: |
-          echo "=== Before cleanup ==="
-          df -h /
-          sudo rm -rf /usr/share/dotnet            # ~6 GB
-          sudo rm -rf /usr/local/lib/android        # ~12 GB
-          sudo rm -rf /opt/ghc                      # ~2 GB
-          sudo rm -rf /opt/hostedtoolcache          # ~8 GB
-          sudo rm -rf /usr/local/share/boost         # ~1.5 GB
-          sudo rm -rf /usr/share/swift              # ~1.7 GB
-          sudo rm -rf /usr/local/graalvm            # ~1 GB
-          sudo rm -rf /usr/local/.ghcup             # ~2 GB
-          sudo rm -rf /usr/local/share/powershell   # ~0.5 GB
-          sudo rm -rf /usr/local/share/chromium     # ~0.3 GB
-          sudo rm -rf /usr/share/miniconda          # ~0.5 GB
-          sudo docker image prune --all --force     # ~4 GB
-          sudo apt-get clean
-          echo "=== After cleanup ==="
-          df -h /
-
       - name: Verify disk space
         run: |
+          df -h /
           AVAIL_GB=$(df --output=avail / | tail -1 | awk '{printf "%.0f", $1/1024/1024}')
           echo "Available disk space: ${AVAIL_GB} GB"
           if [ "$AVAIL_GB" -lt 25 ]; then
@@ -44,14 +25,17 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential gcc g++ \
-            libncurses-dev unzip bc \
-            python3 python3-setuptools python3-pip \
-            rsync cpio wget file \
-            libssl-dev dosfstools mtools \
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            libncurses-dev dosfstools mtools \
             device-tree-compiler
+
+      - name: Restore build output cache
+        uses: actions/cache@v4
+        with:
+          path: modules/buildroot/output
+          key: br-output-${{ hashFiles('modules/buildroot-external-st/configs/stm32mp257DAK_core_defconfig', '.gitmodules') }}
+          restore-keys: br-output-
 
       - name: Restore Buildroot download cache
         uses: actions/cache@v4
@@ -64,7 +48,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.buildroot-ccache
-          key: br-ccache-${{ github.sha }}
+          key: br-ccache-${{ hashFiles('modules/buildroot-external-st/configs/stm32mp257DAK_core_defconfig') }}
           restore-keys: br-ccache-
 
       - name: Build firmware
