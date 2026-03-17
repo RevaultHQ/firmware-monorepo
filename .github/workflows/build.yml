@@ -1,0 +1,103 @@
+name: Build Firmware
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+
+    steps:
+      - name: Checkout with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Free disk space
+        run: |
+          echo "=== Before cleanup ==="
+          df -h /
+          sudo rm -rf /usr/share/dotnet            # ~6 GB
+          sudo rm -rf /usr/local/lib/android        # ~12 GB
+          sudo rm -rf /opt/ghc                      # ~2 GB
+          sudo rm -rf /opt/hostedtoolcache          # ~8 GB
+          sudo rm -rf /usr/local/share/boost         # ~1.5 GB
+          sudo rm -rf /usr/share/swift              # ~1.7 GB
+          sudo rm -rf /usr/local/graalvm            # ~1 GB
+          sudo rm -rf /usr/local/.ghcup             # ~2 GB
+          sudo rm -rf /usr/local/share/powershell   # ~0.5 GB
+          sudo rm -rf /usr/local/share/chromium     # ~0.3 GB
+          sudo rm -rf /usr/share/miniconda          # ~0.5 GB
+          sudo docker image prune --all --force     # ~4 GB
+          sudo apt-get clean
+          echo "=== After cleanup ==="
+          df -h /
+
+      - name: Verify disk space
+        run: |
+          AVAIL_GB=$(df --output=avail / | tail -1 | awk '{printf "%.0f", $1/1024/1024}')
+          echo "Available disk space: ${AVAIL_GB} GB"
+          if [ "$AVAIL_GB" -lt 25 ]; then
+            echo "::error::Insufficient disk space: ${AVAIL_GB} GB available, need at least 25 GB"
+            exit 1
+          fi
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential gcc g++ \
+            libncurses-dev unzip bc \
+            python3 python3-setuptools python3-pip \
+            rsync cpio wget file \
+            libssl-dev dosfstools mtools \
+            device-tree-compiler
+
+      - name: Restore Buildroot download cache
+        uses: actions/cache@v4
+        with:
+          path: modules/buildroot/dl
+          key: br-dl-${{ hashFiles('modules/buildroot-external-st/configs/stm32mp257DAK_core_defconfig') }}
+          restore-keys: br-dl-
+
+      - name: Restore ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.buildroot-ccache
+          key: br-ccache-${{ github.sha }}
+          restore-keys: br-ccache-
+
+      - name: Build firmware
+        run: make build
+
+      - name: Report disk usage
+        if: always()
+        run: |
+          echo "=== Disk usage after build ==="
+          df -h /
+          du -sh modules/buildroot/output/ 2>/dev/null || true
+          du -sh modules/buildroot/dl/ 2>/dev/null || true
+
+      - name: Prepare flash package
+        run: |
+          mkdir -p flash-package
+          IMAGES=modules/buildroot/output/images
+          cp "${IMAGES}/flash_full.tsv" flash-package/
+          cp "${IMAGES}/tf-a-stm32mp257d-stm32mp257dak3-mx-optee-programmer-usb.stm32" flash-package/
+          cp "${IMAGES}/fip-stm32mp257d-stm32mp257dak3-mx-optee-programmer-usb.bin" flash-package/
+          cp "${IMAGES}/fip-stm32mp257d-stm32mp257dak3-mx-ddr-optee-programmer-usb.bin" flash-package/
+          cp "${IMAGES}/tf-a-stm32mp257d-stm32mp257dak3-mx-optee-emmc.stm32" flash-package/
+          cp "${IMAGES}/emmc_full.img" flash-package/
+          echo "=== Flash package contents ==="
+          ls -lh flash-package/
+
+      - name: Upload flash package
+        uses: actions/upload-artifact@v4
+        with:
+          name: flash-package-${{ github.sha }}
+          path: flash-package/
+          retention-days: 30
