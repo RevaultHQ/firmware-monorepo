@@ -6,11 +6,31 @@ VaultBase 硬件的固件 monorepo，基于 Buildroot 构建，目标平台为 S
 
 ## 仓库职责划分
 
-| 仓库 | 内容 | 开源状态 |
-|------|------|---------|
-| **本仓库** | Buildroot 构建系统、BSP（设备树、内核补丁、驱动）、系统层（核心服务、HAL、启动器） | 待定 |
-| [firmware-apps](https://github.com/RevaultHQ/firmware-apps) | 用户态应用（设置等），通过 System SDK 与底层交互 | 开源 |
-| [firmware-se](https://github.com/RevaultHQ/firmware-se) | Secure Element 固件，运行在独立安全芯片上 | 闭源 |
+```mermaid
+block-beta
+  columns 1
+  block:apps["firmware-apps"]
+    a1["用户态应用：钱包 App、设置等"]
+    a2["通过 System SDK 与底层交互"]
+  end
+  block:mono["firmware-monorepo (本仓库)"]
+    m1["BSP：设备树 / 内核补丁 / 驱动"]
+    m2["System：核心服务 / HAL / 启动器"]
+    m3["构建输出：完整可烧录固件镜像"]
+  end
+  block:se["firmware-se"]
+    s1["ST33K1M5C Secure Element 固件"]
+    s2["运行在独立安全芯片上"]
+  end
+  apps --> mono
+  mono --> se
+```
+
+| 仓库 | 描述 | 状态 |
+|:-----|:-----|:----:|
+| **本仓库** — firmware-monorepo | Buildroot 构建系统、BSP（设备树、内核补丁、驱动）、系统层（核心服务、HAL、启动器） | 待定 |
+| [firmware-apps](https://github.com/RevaultHQ/firmware-apps) | 用户态应用（设置等），通过 System SDK 与底层交互 | `开源` |
+| [firmware-se](https://github.com/RevaultHQ/firmware-se) | ST33K1M5C Secure Element 固件，运行在独立安全芯片上 | `闭源` |
 
 ## 产品 SKU（一套代码，两套编译产物）
 
