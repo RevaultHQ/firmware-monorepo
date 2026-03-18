@@ -4,22 +4,6 @@
 
 ## 仓库职责划分
 
-```mermaid
-block-beta
-  columns 1
-  block:apps["firmware-apps"]
-    a1["用户态应用"]
-  end
-  block:mono["firmware-monorepo (本仓库)"]
-    m1["BSP + System + 构建"]
-  end
-  block:se["firmware-se"]
-    s1["Secure Element 固件"]
-  end
-  apps --> mono
-  mono --> se
-```
-
 | 仓库 | 描述 | 状态 |
 |:-----|:-----|:----:|
 | **本仓库** | BSP、系统层、Buildroot 构建，产出可烧录固件 | 待定 |
@@ -33,7 +17,7 @@ block-beta
 | 模块 | Air | Pro |
 |:-----|:---:|:---:|
 | 主控 / SE / RAM / ROM / PMIC / 蓝牙 | 相同 | 相同 |
-| 显示屏 | 4" LCD | 4.3" AMOLED |
+| 显示屏 | ✅ （4" 型号） |  ✅ （4.3" 型号） |
 | 摄像头 | ✅ (不同型号) | ✅ (不同型号) |
 | 指纹 | — | ✅ |
 | 电池 | — | ✅ |
