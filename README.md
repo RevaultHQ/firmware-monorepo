@@ -1,5 +1,10 @@
 # VaultBase Firmware Monorepo
 
+[![Build Firmware](https://github.com/RevaultHQ/firmware-monorepo/actions/workflows/build.yml/badge.svg)](https://github.com/RevaultHQ/firmware-monorepo/actions/workflows/build.yml)
+[![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-blue.svg)](https://polyformproject.org/licenses/noncommercial/1.0.0/)
+[![Platform: STM32MP2](https://img.shields.io/badge/platform-STM32MP2-00599C.svg?logo=stmicroelectronics)](https://www.st.com/en/microcontrollers-microprocessors/stm32mp2-series.html)
+[![Buildroot: st/2025.02.5](https://img.shields.io/badge/buildroot-st%2F2025.02.5-orange.svg)](https://github.com/bootlin/buildroot/tree/st/2025.02.5)
+
 基于 Buildroot 的 VaultBase 固件仓库，目标平台 STM32MP2。
 
 ## 仓库职责划分
@@ -91,4 +96,8 @@ GitHub Actions 手动触发（`workflow_dispatch`），三级缓存加速：
 
 ## License
 
-TBD
+本仓库采用 [PolyForm Noncommercial License 1.0.0](LICENSE) 许可。
+
+你可以自由 fork、查看和修改代码用于个人学习、研究和非商业用途，但 **禁止将本项目或其衍生作品用于任何商业目的**。
+
+详见 [LICENSE](LICENSE) 文件。
